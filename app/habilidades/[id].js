@@ -1,84 +1,84 @@
 // ============================================================
-// IMPORTS
+// TELA DE DETALHE DA HABILIDADE (3ª tela)
+// Mostra nome, nível e a descrição da habilidade clicada
 // ============================================================
-import { View, Text, Pressable, StyleSheet } from "react-native";
 
-// Stack: permite mudar o título do cabeçalho desta tela
-// useLocalSearchParams: lê os parâmetros que vieram na rota (o "id")
-// useRouter: dá o "router" para voltar e navegar
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-
-// Dois "../" porque este arquivo está em app/habilidades/,
-// dois níveis abaixo da raiz, onde fica a pasta data/
+import { View, Text, StyleSheet } from "react-native";
+import { Stack, useLocalSearchParams } from "expo-router";
+import { FontAwesome5 } from "@expo/vector-icons";
 import { habilidades } from "../../data/habilidades";
 
-// ============================================================
-// COMPONENTE DA TELA
-//
-// ROTA DINÂMICA: os colchetes no nome [id].js dizem ao Expo Router que
-// essa parte da rota muda. A mesma tela serve para todas as habilidades:
-//   /habilidades/js   -> id = "js"
-//   /habilidades/css  -> id = "css"
-// ============================================================
 export default function DetalheHabilidade() {
-  // Pega o parâmetro "id" da rota. O nome precisa ser igual ao que
-  // está entre colchetes no arquivo ([id] -> id).
+  // Lê o id que veio no endereço, ex: /habilidades/js
   const { id } = useLocalSearchParams();
 
-  const router = useRouter();
+  // Procura na lista a habilidade com esse id
+  // Comparamos com String() para garantir que os dois sejam texto
+  const habilidade = habilidades.find((item) => String(item.id) === String(id));
 
-  // .find() percorre a lista e devolve o PRIMEIRO item que atende
-  // à condição. Aqui: a habilidade cujo id é igual ao da rota.
-  // Se não achar nenhuma, devolve undefined.
-  const habilidade = habilidades.find((h) => h.id === id);
-
-  // PROTEÇÃO: se alguém abrir um id que não existe
-  // (por exemplo /habilidades/xyz), mostramos um aviso em vez de
-  // deixar o app quebrar tentando ler "habilidade.nome" de undefined.
+  // Se não encontrou, mostra um aviso em vez de quebrar o app
   if (!habilidade) {
-    return <Text style={{ padding: 16 }}>Habilidade não encontrada.</Text>;
+    return (
+      <View style={estilos.container}>
+        <Text>Habilidade não encontrada.</Text>
+      </View>
+    );
   }
 
   return (
-    <View style={styles.container}>
-      {/* Stack.Screen dentro da tela muda as opções do cabeçalho.
-          Aqui o título passa a ser o nome da habilidade (JavaScript, CSS...) */}
+    <View style={estilos.container}>
+      {/* Título da aba no navegador */}
       <Stack.Screen options={{ title: habilidade.nome }} />
 
-      <Text style={styles.titulo}>{habilidade.nome}</Text>
-      <Text style={styles.nivel}>Nível: {habilidade.nivel}</Text>
-      <Text style={styles.descricao}>{habilidade.descricao}</Text>
+      {/* Cartão com as cores da habilidade */}
+      <View style={[estilos.cartao, { backgroundColor: habilidade.fundo }]}>
+        <FontAwesome5 name={habilidade.icone} size={48} color={habilidade.cor} />
 
-      {/* router.back() desfaz o último router.push:
-          volta UMA tela na pilha */}
-      <Pressable style={styles.voltar} onPress={() => router.back()}>
-        <Text style={styles.textoBotao}>VOLTAR</Text>
-      </Pressable>
+        <Text style={[estilos.nome, { color: habilidade.texto }]}>
+          {habilidade.nome}
+        </Text>
 
-      {/* router.dismissAll() fecha todas as telas empilhadas e volta
-          direto para a primeira da pilha (o início). Se a sua versão do
-          Expo Router não tiver essa função, use router.replace("/"). */}
-      <Pressable style={styles.inicio} onPress={() => router.dismissAll()}>
-        <Text style={styles.textoBotao}>IR PARA O INÍCIO</Text>
-      </Pressable>
+        {/* Nível: Iniciante, Intermediário ou Avançado */}
+        <Text style={[estilos.nivel, { color: habilidade.cor }]}>
+          Nível: {habilidade.nivel}
+        </Text>
+
+        {/* 👇 AQUI está o texto que estava faltando! */}
+        <Text style={[estilos.descricao, { color: habilidade.texto }]}>
+          {habilidade.descricao}
+        </Text>
+      </View>
     </View>
   );
 }
 
-// ============================================================
-// ESTILOS
-// ============================================================
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: "#fff" },
-  titulo: { fontSize: 24, fontWeight: "bold", marginBottom: 8 },
-  nivel: { fontSize: 14, marginBottom: 8 },
-  descricao: { fontSize: 14, color: "#555", marginBottom: 24 },
-  voltar: {
-    backgroundColor: "#4169E1",
-    padding: 14,
-    borderRadius: 14,
-    marginBottom: 10,
+const estilos = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
   },
-  inicio: { backgroundColor: "#1F2937", padding: 14, borderRadius: 14 },
-  textoBotao: { color: "#fff", fontWeight: "bold", textAlign: "center" },
+  cartao: {
+    width: "100%",
+    maxWidth: 400,
+    borderRadius: 16,
+    padding: 32,
+    alignItems: "center",
+    gap: 12,
+  },
+  nome: {
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  nivel: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  descricao: {
+    fontSize: 16,
+    textAlign: "center",
+    lineHeight: 24,
+  },
 });

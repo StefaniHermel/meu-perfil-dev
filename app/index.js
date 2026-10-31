@@ -2,12 +2,18 @@
 // IMPORTS: trazem para este arquivo o que vamos usar
 // ============================================================
 
+// useState é um "Hook" do React: cria variáveis que, quando mudam,
+// fazem a tela ser desenhada de novo.
+// useEffect executa um código em momentos certos: ao abrir a tela
+// ou quando algum state muda.
+import { useState, useEffect } from "react";
+
+// AsyncStorage = armazenamento no aparelho. Guarda dados mesmo depois
+// de fechar o app ou dar F5. Ele só guarda TEXTO (string).
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 // StatusBar controla a barra de status do celular (hora, bateria...)
 import { StatusBar } from "expo-status-bar";
-
-// useState é um "Hook" do React: cria variáveis que, quando mudam,
-// fazem a tela ser desenhada de novo
-import { useState } from "react";
 
 // useRouter nos dá o objeto "router", usado para navegar entre telas
 // (Expo Router: cada arquivo dentro de app/ é uma tela)
@@ -26,16 +32,13 @@ import {
   Alert,
 } from "react-native";
 
-// Ícones (coração, logos de linguagens...)
-import { FontAwesome5 } from "@expo/vector-icons";
+// Ícones: FontAwesome5 (coração do botão de curtir)
+// e Ionicons (ícone do cartão de habilidades)
+import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 
 // Nosso componente do cabeçalho. O "../" sobe uma pasta, porque este
 // arquivo está dentro de app/ e o components/ fica na raiz do projeto
 import Cabecalho from "../components/Cabecalho";
-
-// A lista de habilidades vive em data/habilidades.js, para que esta tela
-// e a tela de detalhe usem os mesmos dados
-import { habilidades } from "../data/habilidades";
 
 // ============================================================
 // COMPONENTE PRINCIPAL
@@ -55,13 +58,76 @@ export default function App() {
   const [curtidas, setCurtidas] = useState(0); // número de curtidas
   const [recomendacoes, setRecomendacoes] = useState(0); // número de recomendações
   const [disponivel, setDisponivel] = useState(true); // true = disponível, false = não
-  const [mostrarHabilidades, setMostrarHabilidades] = useState(true); // mostra/esconde o cartão
+
+  // Bandeirinha: só vira true depois de terminar de LER o que estava salvo.
+  // Sem ela, os valores iniciais (0 e true) seriam gravados por cima
+  // dos valores antigos logo na abertura da tela.
+  const [carregou, setCarregou] = useState(false);
+
+  // ----------------------------------------------------------
+  // CARREGAR (AsyncStorage): roda UMA vez, quando a tela abre.
+  // O [] no final (array de dependências vazio) significa
+  // "execute só na primeira vez".
+  // ----------------------------------------------------------
+  useEffect(() => {
+    // O useEffect não aceita receber uma função async direto,
+    // por isso criamos a função "carregar" dentro dele e a chamamos.
+    async function carregar() {
+      // try = tenta executar. Se algo der errado, pula para o catch
+      // e o app não trava.
+      try {
+        // getItem busca o valor guardado na chave "perfil".
+        // await = espera a leitura terminar antes de seguir.
+        const salvo = await AsyncStorage.getItem("perfil");
+
+        // Se nunca foi salvo nada, getItem devolve null.
+        // Só convertemos se existir algo guardado.
+        if (salvo !== null) {
+          // JSON.parse transforma o TEXTO de volta em objeto,
+          // por exemplo { recomendacoes: 3, disponivel: false }
+          const dados = JSON.parse(salvo);
+
+          // Coloca cada valor guardado no seu state
+          setRecomendacoes(dados.recomendacoes);
+          setDisponivel(dados.disponivel);
+        }
+      } catch (erro) {
+        // Se der erro, mostra no console (F12 no navegador)
+        console.log("Erro ao carregar o perfil:", erro);
+      } finally {
+        // finally roda SEMPRE, deu certo ou errado.
+        // Libera o salvamento: agora já sabemos o que tinha guardado.
+        setCarregou(true);
+      }
+    }
+
+    carregar(); // chama a função que acabamos de criar
+  }, []);
+
+  // ----------------------------------------------------------
+  // SALVAR (AsyncStorage): roda toda vez que recomendações,
+  // disponibilidade ou "carregou" mudarem.
+  // ----------------------------------------------------------
+  useEffect(() => {
+    // Ainda lendo? Então não salva nada
+    if (!carregou) return;
+
+    // Guardamos DOIS valores na mesma chave, dentro de um objeto.
+    // JSON.stringify transforma o objeto em TEXTO, porque o
+    // AsyncStorage só aceita texto.
+    AsyncStorage.setItem(
+      "perfil",
+      JSON.stringify({ recomendacoes, disponivel })
+    );
+  }, [recomendacoes, disponivel, carregou]);
 
   // ----------------------------------------------------------
   // FUNÇÕES
   // ----------------------------------------------------------
 
-  // Soma uma recomendação, mas só até o limite de 10
+  // Soma uma recomendação, mas só até o limite de 10.
+  // Não precisa chamar o AsyncStorage aqui: como "recomendacoes" muda,
+  // o useEffect de salvar roda sozinho.
   function recomendar() {
     if (recomendacoes >= 10) {
       // Alert.alert(título, mensagem) abre uma janelinha de aviso.
@@ -129,8 +195,7 @@ export default function App() {
       <Cabecalho foto={foto} nome={nome} cargo={cargo} />
 
       {/* NAVEGAÇÃO: router.push("/recados") abre o arquivo app/recados.js
-          e coloca essa tela em cima da pilha (Stack). Por isso aparece o
-          botão de voltar no cabeçalho. */}
+          e coloca essa tela em cima da pilha. */}
       <Pressable
         // Array de estilos: o estilo base + um objeto com ajustes só deste botão
         style={[styles.botao, { backgroundColor: "#4169E1", marginBottom: 12 }]}
@@ -220,50 +285,19 @@ export default function App() {
         </Text>
       </View>
 
-      {/* Botão que alterna entre mostrar e esconder as habilidades */}
+      {/* TELA 1 DAS HABILIDADES: este cartão mostra o ícone e o título.
+          Ao tocar, router.push("/habilidades") abre a TELA 2
+          (o arquivo app/habilidades/index.js, com a lista).
+          O View com "tituloLinha" põe o ícone e o texto lado a lado. */}
       <Pressable
-        style={styles.botaoHabilidades}
-        onPress={() => setMostrarHabilidades(!mostrarHabilidades)}
+        style={styles.cartao}
+        onPress={() => router.push("/habilidades")}
       >
-        <Text style={styles.textoBotaoHabilidades}>
-          {mostrarHabilidades ? "Esconder habilidades" : "Mostrar habilidades"}
-        </Text>
-      </Pressable>
-
-      {/* CARTÃO DE HABILIDADES (só aparece se mostrarHabilidades for true) */}
-      {mostrarHabilidades && (
-        <View style={styles.cartao}>
-          <Text style={styles.titulo}>Habilidades</Text>
-
-          <View style={styles.grade}>
-            {/* .map() percorre a lista e cria um componente para cada item.
-                "item" é uma habilidade de cada vez (JavaScript, HTML, CSS...) */}
-            {habilidades.map((item) => (
-              <Pressable
-                // "key" é obrigatória em listas: ajuda o React a identificar
-                // cada item. Precisa ser única, por isso usamos o id.
-                key={item.id}
-                style={[styles.etiqueta, { backgroundColor: item.fundo }]}
-                // Template string com crase: `/habilidades/${item.id}` vira,
-                // por exemplo, "/habilidades/js". Esse "js" chega ao arquivo
-                // app/habilidades/[id].js como o parâmetro "id".
-                onPress={() => router.push(`/habilidades/${item.id}`)}
-              >
-                <FontAwesome5
-                  name={item.icone}
-                  size={28}
-                  color={item.cor}
-                  style={styles.etiquetaIcone}
-                />
-
-                <Text style={[styles.etiquetaTexto, { color: item.texto }]}>
-                  {item.nome}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
+        <View style={styles.tituloLinha}>
+          <Ionicons name="code-slash" size={24} color="#4D7C2A" />
+          <Text style={[styles.titulo, { marginBottom: 0 }]}>Habilidades</Text>
         </View>
-      )}
+      </Pressable>
 
       {/* BOTÃO DE CONTATO */}
       <Pressable
@@ -363,35 +397,17 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 
+  // Ícone e título lado a lado (usado no cartão de Habilidades)
+  tituloLinha: {
+    flexDirection: "row", // itens um ao lado do outro
+    alignItems: "center", // alinhados no centro vertical
+    gap: 8, // espaço entre o ícone e o texto
+  },
+
   bio: {
     fontSize: 15,
     lineHeight: 22, // altura de cada linha de texto
     color: "#4B5563",
-  },
-
-  // Grade de 2 colunas das habilidades (o mesmo conceito do flexbox do CSS)
-  grade: {
-    flexDirection: "row", // itens lado a lado (o padrão no React Native é coluna)
-    flexWrap: "wrap", // quando não cabe, quebra para a linha de baixo
-    justifyContent: "space-between", // espaço entre os itens
-  },
-
-  // Cada habilidade ocupa 48% da largura, então cabem 2 por linha
-  etiqueta: {
-    width: "48%",
-    alignItems: "center",
-    paddingVertical: 14,
-    borderRadius: 14,
-    marginBottom: 10,
-  },
-
-  etiquetaIcone: {
-    marginBottom: 6,
-  },
-
-  etiquetaTexto: {
-    fontSize: 14,
-    fontWeight: "700",
   },
 
   // Estilo base dos botões grandes (usado no mural e no contato)
@@ -464,21 +480,6 @@ const styles = StyleSheet.create({
   textoBotaoDisponibilidade: {
     color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: "bold",
-  },
-
-  botaoHabilidades: {
-    width: "100%",
-    paddingVertical: 14,
-    borderRadius: 14,
-    alignItems: "center",
-    marginBottom: 12,
-    backgroundColor: "#4169E1",
-  },
-
-  textoBotaoHabilidades: {
-    color: "#FFFFFF",
-    fontSize: 15,
     fontWeight: "bold",
   },
 
