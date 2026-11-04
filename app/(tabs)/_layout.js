@@ -1,27 +1,22 @@
 import { Tabs } from "expo-router";
-import { FontAwesome5, Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
+        headerStyle: { backgroundColor: "#1E3A8A" },
+        headerTintColor: "#FFFFFF",
+        headerTitleStyle: { fontWeight: "700" },
         tabBarActiveTintColor: "#2563EB",
         tabBarInactiveTintColor: "#64748B",
-        tabBarStyle: {
-          backgroundColor: "#FFFFFF",
-          borderTopWidth: 1,
-          borderTopColor: "#E2E8F0",
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
-        },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: "Início",
+          tabBarLabel: "Início",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home-outline" size={size} color={color} />
           ),
@@ -30,16 +25,18 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="habilidades"
         options={{
-          title: "Habilidades",
+          title: "Minhas Habilidades",
+          tabBarLabel: "Habilidades",
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome5 name="code" size={size - 2} color={color} />
+            <Ionicons name="code-slash-outline" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="recados"
         options={{
-          title: "Recados",
+          title: "Mural de Recados",
+          tabBarLabel: "Recados",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="chatbubbles-outline" size={size} color={color} />
           ),
