@@ -1,16 +1,26 @@
-import { StyleSheet, Text, View, Image } from 'react-native';
+
+import { StyleSheet, Text, View, Image } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function Cabecalho({ foto, nome, cargo }) {
   return (
     <View style={styles.cabecalho}>
-      <Text style={styles.boasVindas}>Bem-vindo ao meu perfil</Text>
+      <Text style={styles.boasVindas}>MEU PORTFÓLIO</Text>
 
-      <Image source={{ uri: foto }} style={styles.foto} />
+      <View style={styles.fotoContainer}>
+        <Image source={{ uri: foto }} style={styles.foto} />
+      </View>
 
       <Text style={styles.nome}>{nome}</Text>
 
       <View style={styles.cargoBox}>
+        <Ionicons name="code-slash" size={16} color="#FFFFFF" />
         <Text style={styles.cargo}>{cargo}</Text>
+      </View>
+
+      <View style={styles.localizacao}>
+        <Ionicons name="location-outline" size={16} color="#64748B" />
+        <Text style={styles.localizacaoTexto}>Garopaba, SC</Text>
       </View>
     </View>
   );
@@ -18,49 +28,76 @@ export default function Cabecalho({ foto, nome, cargo }) {
 
 const styles = StyleSheet.create({
   cabecalho: {
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 24,
-    marginBottom: 16,
-    width: '100%',
-    shadowColor: '#000',
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    padding: 26,
+    marginBottom: 18,
+    width: "100%",
+    borderTopWidth: 5,
+    borderTopColor: "#2563EB",
+    shadowColor: "#0F172A",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
+
   boasVindas: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#4169E1',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    marginBottom: 16,
+    fontSize: 12,
+    fontWeight: "bold",
+    color: "#2563EB",
+    letterSpacing: 2,
+    marginBottom: 18,
   },
+
+  fotoContainer: {
+    padding: 5,
+    borderRadius: 70,
+    borderWidth: 2,
+    borderColor: "#BFDBFE",
+    marginBottom: 14,
+  },
+
   foto: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 4,
-    borderColor: '#4169E1',
-    marginBottom: 12,
+    width: 112,
+    height: 112,
+    borderRadius: 56,
   },
+
   nome: {
     fontSize: 26,
-    fontWeight: 'bold',
-    color: '#1F2937',
+    fontWeight: "bold",
+    color: "#0F172A",
+    textAlign: "center",
   },
+
   cargoBox: {
-    backgroundColor: '#E0E7FF',
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    marginTop: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#1E40AF",
+    paddingVertical: 9,
+    paddingHorizontal: 16,
+    borderRadius: 24,
+    marginTop: 12,
   },
+
   cargo: {
-    color: '#3730A3',
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+
+  localizacao: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginTop: 14,
+  },
+
+  localizacaoTexto: {
+    color: "#64748B",
     fontSize: 14,
-    fontWeight: '600',
   },
 });

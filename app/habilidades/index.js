@@ -3,14 +3,10 @@
 // ============================================================
 import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
 import { Stack, useRouter } from "expo-router";
-
-// Os mesmos ícones que você usava na Home
 import { FontAwesome5 } from "@expo/vector-icons";
 
 // Dois "../" porque este arquivo está em app/habilidades/
 import { habilidades } from "../../data/habilidades";
-import { Ionicons } from '@expo/vector-icons';
-
 // ============================================================
 // TELA 2: lista de habilidades (rota /habilidades)
 // ============================================================
